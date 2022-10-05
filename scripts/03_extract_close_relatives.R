@@ -4,6 +4,7 @@ library(treeio)
 library(ape)
 library(caper)
 library(furrr)
+library(pdtools)
 
 
 if (future::supportsMulticore()){
@@ -21,47 +22,76 @@ SNP_cluster_tree_dat <-
   dplyr::select(rep_genome, everything()) # need taxa column 1st for ggtree
 
 
-tr <- read.raxml('RAxML_bipartitionsBranchLabels.SNP_reps')
+tr <- read.raxml('RAxML_bipartitionsBranchLabels.SNP_reps_pan')
 trR <- read.tree('ROOT_DIG1.rooted.tree')
 
-# make a ggtree object
+
+
+# make a ggtree object (full tree)
 ggtr <- ggtree(trR) 
 
 # attach metadata to the tree
 ggtr <- ggtr %<+% SNP_cluster_tree_dat
 
-# plot tree with node labels to ID interesting clades
-ggtr + geom_nodelab(aes(label=node), size=3, nudge_x = -.00002) +geom_text2(aes(subset=grepl('SX', label), label=label), nudge_x = .00008)
-
-# node 66 defines a broad clade of interest
-# node 67 defines specific clade of interest
-
-
-
-# most recent common ancestor (node number)
+# get most recent common ancestor (node number) for genomes of interest
 MRCA <- getMRCA(phy = trR, c('SX244', 'SX245'))
-# only SX244 and 245 in this clade
-clade.members(x = MRCA, phy =trR, tip.labels = T)
-# move down the tree by two nodes to capture some more SNP clusters
-reps <- clade.members(x = MRCA - 2, phy =trR, tip.labels = T)
-reps <- reps[!grepl('SX', reps)]
-###
 
-### Tree showing SNP clusters selected for further analysis
+# extract the clade one node up the tree from MRCA
+tr_clade <- 
+  extract.clade(trR, MRCA - 1 ) 
+
+# node for the clade of interest in the subtree
+MRCA_clade <- getMRCA(tr_clade, c('SX244', 'SX245'))
+
+# make a ggtree object (clade of interest)and attach metadata to it
+ggtr_clade <- 
+  ggtree(tr_clade) %<+% SNP_cluster_tree_dat
+
+# look at the node numbers on the tree
+ggtr_clade +geom_nodelab(aes(label=node))
+
+# plot full tree 
 ggtr +
-  geom_highlight(node=MRCA - 2) +
-  geom_text2(aes(label=label,subset=grepl('SX', label)), nudge_x = .00006, size=3) +
-  geom_cladelabel(node=MRCA - 2, label = 'selected', offset = .00009) + 
-  geom_tippoint(aes(size=num_isolates, color=hosts ))
-###
+  # geom_nodelab(aes(label=node), size=3, nudge_x = -.00002) +
+  geom_text2(aes(subset=grepl('S', label), label=label),size=3, nudge_x = .0003)+
+  geom_highlight(node=MRCA - 1, extend=1 ,to.bottom = T)+
+  expand_limits(x=.009)
+  
+### THIS ONE
+p_clade <- 
+  ggtr_clade %>% 
+  ggtree::rotate(68)+
+  # geom_nodelab(aes(label=node), size=3) +
+  geom_highlight(node=MRCA_clade, extend=.000005 )+
+  geom_point2(aes(subset=grepl('SX', label)),size=3, color='purple')+
+  geom_tippoint(size=.3)+
+  geom_tippoint(aes(size=num_isolates), alpha=.75)+
+  geom_text2(aes(subset=grepl('S', label), label=label),size=3, nudge_x = .000002)+
+  geom_label2(aes(subset=grepl(close_clusters, label), label=PDS_acc),size=4, nudge_x = .000011)+
+  expand_limits(y=-1)+
+  ggtitle('SNP cluster most closely associated with these isolates')
 
-SNP_cluster_tree_dat %>% filter(asm_acc %in% reps) %>% summarise(TOT=sum(num_isolates))
+ggsave(p_clade, filename = 'output/SNP_cluster_tree.jpeg', width = 9, height = 7, bg='white')
 
-PDS_accs <- SNP_cluster_tree_dat %>% filter(asm_acc %in% reps) %>% pull(PDS_acc)
+# One other SNP cluster associated with SX244 and SX245
+close_clusters <- clade.members(x = MRCA, phy =trR, tip.labels = T)
+close_clusters <- close_clusters[!grepl('SX', close_clusters)]
+
+
+# close clusters is more reasonable with 339 genomes
+SNP_cluster_tree_dat %>% filter(asm_acc %in% close_clusters) %>% summarise(TOT=sum(num_isolates))
+
+# SNP clusters to get genomes from
+PDS_accs <-
+  SNP_cluster_tree_dat %>%
+  filter(asm_acc %in% close_clusters) %>%
+  pull(PDS_acc)
 # usethis::use_directory('close_relative')
 
+# filter all hberg metadata to just those in this snp cluster
+# download these genomes
 close_relatives_meta <- 
-  hberg_meta %>% 
+  read_tsv('output/01_all_hberg_metadata.tsv') %>% 
   filter(PDS_acc %in% PDS_accs) %>% 
   make_dest_paths('fna','assemblies/') %>% 
   make_ftp_paths('gbk_assembly_summary.tsv') %>% 

@@ -2,7 +2,7 @@
 set -e
 # maybe eventually try and migrate to snakemake?
 
-Rscript ./scripts/01_downloads.R
+#Rscript ./scripts/01_downloads.R
 # outputs: 
 #   directories: 
 #     ./data/
@@ -16,12 +16,12 @@ Rscript ./scripts/01_downloads.R
 #     - ./output/hberg_ppanggolin_file.tsv  --- for running SNP cluster rep pangenome RENAME
 #     - ./output/01_all_hberg_metadata.tsv
 
-bash -i ./scripts/02_SNP_cluster_tree.sh
+#bash -i ./scripts/02_SNP_cluster_tree.sh
 # outputs:
 #   directories:
 #     ./SNP_reps_pan/
 
-Rscript ./scripts/03_extract_close_relatives.R
+#Rscript ./scripts/03_extract_close_relatives.R
 
 bash -i ./scripts/04_close_relatives_tree.sh
 

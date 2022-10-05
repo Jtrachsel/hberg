@@ -37,3 +37,10 @@ rd --msa ./close_relatives_pan/MSA/core_genome_alignment.aln --tree RAxML_bipart
 
 # compute concordance factors
 #iqtree -t concat.treefile --gcf loci.treefile -p ALN_DIR --scf 100 --prefix concord -T 10
+
+
+# RUN AMRFINDER ON REP_PROTS
+amrfinder -p close_relatives_pan/REP_PROTS/all_protein_families.faa  --organism Salmonella --plus --output output/close_relatives_pan_prots_amrfinder.tsv
+# RUN PSORT ON REP_PROTS
+psortb -n -r output/ -i close_relatives_pan/REP_PROTS/all_protein_families.faa -o terse -v
+mv output/2022*_psortb_gramneg.txt output/close_rel_psortb.txt
