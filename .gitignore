@@ -3,3 +3,7 @@
 .RData
 .Ruserdata
 assemblies/GCA*
+Archived*/
+data/
+gbk_assembly_summary.tsv
+output/

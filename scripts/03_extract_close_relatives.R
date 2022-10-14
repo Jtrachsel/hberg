@@ -96,7 +96,7 @@ close_relatives_meta <-
   read_tsv('output/01_all_hberg_metadata.tsv') %>% 
   filter(PDS_acc %in% PDS_accs) %>% 
   make_dest_paths('fna','assemblies/') %>% 
-  make_ftp_paths('gbk_assembly_summary.tsv') %>% 
+  make_ftp_paths('data/gbk_assembly_summary.tsv') %>% 
   make_download_urls('fna') %>% 
   download_genomes(type = 'fna', PARALLEL = TRUE) %>% 
   write_tsv('output/close_relatives_meta.tsv')

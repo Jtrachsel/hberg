@@ -31,7 +31,7 @@ dl <- download_most_recent_complete('Salmonella', folder_prefix = 'data/')
 
 
 # download the genbank assembly summary file
-download_gbk_assembly_summary(organism = 'Salmonella_enterica', destfile = 'gbk_assembly_summary.tsv')
+download_gbk_assembly_summary(organism = 'Salmonella_enterica', destfile = 'data/gbk_assembly_summary.tsv')
 
 # read in the metadata and join the SNP cluster designations
 # this list files line is here because we could have multiple versions
@@ -134,7 +134,7 @@ SNP_cluster_summary$asm_level %>% unique()
 SNP_cluster_tree_dat <- 
   SNP_cluster_summary %>%
   mutate(asm_acc=rep_genome) %>% # these functions require a column named 'asm_acc'
-  make_ftp_paths('gbk_assembly_summary.tsv') %>% 
+  make_ftp_paths('data/gbk_assembly_summary.tsv') %>% 
   make_download_urls('fna') %>% 
   make_dest_paths('fna', 'assemblies/') %>% 
   download_genomes(type='fna', PARALLEL = TRUE)
