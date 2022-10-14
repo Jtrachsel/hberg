@@ -36,7 +36,7 @@ download_gbk_assembly_summary(organism = 'Salmonella_enterica', destfile = 'gbk_
 # read in the metadata and join the SNP cluster designations
 # this list files line is here because we could have multiple versions
 # of the metadata if we are re-running these scripts over time
-PDG_files <- list.files('data', full.names = T) %>% sort(decreasing = T)
+PDG_files <- list.files('data', 'PDG',full.names = T) %>% sort(decreasing = T)
 PDD_meta <- read_tsv(PDG_files[2]) %>% 
   left_join(read_tsv(PDG_files[1]))
 
@@ -81,8 +81,7 @@ WACK_PDS <-
   filter(P_hberg < 0.20) %>%  # keep all SNP clusters that are at least 20% hberg serotypes
   pull(PDS_acc)
 
-# problem cluster?
-# need to change this hardcoded cluster id
+# problem clusters?
 hberg_adjacent %>%
   filter(PDS_acc %in% WACK_PDS) %>%
   pull(Serotype)
@@ -91,7 +90,7 @@ hberg_adjacent %>%
 hberg_meta <- 
   hberg_adjacent %>%
   filter(!(PDS_acc %in% WACK_PDS)) %>%  # remove PDS with low % hberg
-  filter(asm_acc != 'NULL')                 # remove genomes without assemblies
+  filter(asm_acc != 'NULL')             # remove genomes without assemblies
 
 
 
@@ -144,29 +143,34 @@ SNP_cluster_tree_dat <-
 write_tsv(SNP_cluster_tree_dat, 'output/SNP_cluster_tree_data.tsv')
 read_tsv('output/SNP_cluster_tree_data.tsv')
 
+# decompress .gz files
 gzfiles <- list.files('./assemblies/', pattern = '*gz', full.names = TRUE)
 gunzip_results <- furrr::future_map(.x = gzfiles, .f = ~R.utils::gunzip(.x))
-# remove those that dont gunzip properly
+# any that dont gunzip properly?
 gzfiles <- list.files('./assemblies/', pattern = '*gz')
 print(gzfiles)
 
-
+# identify 'complete' genomes
 complete_genomes_paths <- 
   SNP_cluster_tree_dat %>% 
   filter(asm_level == 'Complete Genome') %>%
   mutate(dest=sub('.gz', '', fna_dest)) %>%
   pull(dest)
+
+# add reference 'SL476'
 complete_genomes_paths <- c(complete_genomes_paths, list.files('assemblies', pattern = 'SL476', full.names = T))
 
-
+# all others are incomplete
 incomplete_genomes_paths <- 
   SNP_cluster_tree_dat %>% 
   filter(asm_level != 'Complete Genome') %>%
   mutate(dest=sub('.gz', '', fna_dest)) %>%
   pull(dest)
 
+# add in SX genomes
 incomplete_genomes_paths <- c(incomplete_genomes_paths,list.files('assemblies', pattern = 'SX', full.names = T))
 
+# build a file needed by ppanggolin to calculate a pangenome
 build_ppanggolin_file_fastas(complete_genome_paths = complete_genomes_paths, 
                              incomplete_genome_paths = incomplete_genomes_paths) %>% 
   write_tsv('./output/hberg_ppanggolin_file.tsv', col_names = FALSE)

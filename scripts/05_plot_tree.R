@@ -1,19 +1,40 @@
 library(treeio)
 library(ggtree)
 library(tidyverse)
+library(pdtools)
+# crtr <- read.tree('close_rel_root.rooted.tree')
+crtr <- read.tree('output/close_relatives_pan/MSA/msa_core_protein.treefile')
+meta <-
+  read_tsv('output/close_relatives_meta.tsv') %>% 
+  dplyr::select(asm_acc, everything())
 
-crtr <- read.tree('close_rel_root.rooted.tree')
-read_tsv('close_relatives_ppang.tsv', col_names = F) %>% filter(grepl('SX', X1))
-
-ggtr <- ggtree(crtr, layout = 'circular') #+ geom_tiplab() + xlim(0,.0002)
+# ggtr <- ggtree(crtr, layout = 'circular') %<+% meta
+ggtr <- ggtree(crtr) %<+% meta
 
 
-ggtr + geom_tiplab(aes(subset=grepl('SX', label)))
-grep('SX', ggtr$data$label)
+hist(crtr$edge)
+
+# ggtr$data$sra_center
+ggtr +
+  # geom_tippoint(aes(fill=ag_match),size=2, shape =21)+
+  geom_tiplab(aes(subset=grepl('SX', label)), align = T) + 
+  scale_fill_brewer(palette = 'Dark2', direction = -1) + 
+  geom_point2(aes(subset=sra_center == 'USDA-NVSL-DBL'), shape=21,fill='red')+
+  # geom_nodepoint(aes(subset=bootstrap > 74, color=bootstrap)) + 
+  expand_limits(x=.0004) + ggtitle('')
+
+ggtr$data <- 
+  ggtr$data %>%
+  mutate(bootstrap=ifelse(as.numeric(label) > 95, as.numeric(label), NA))
+
+ggtr$data$label
+
+
+
 
 meta <- read_tsv('output/close_relatives_meta.tsv')
 
-PDG <- sub('.cluster_list.tsv','',list.files('data') %>% sort(decreasing = T) %>% pluck(1))
+PDG <- sub('.cluster_list.tsv','',list.files('data', 'PDG') %>% sort(decreasing = T) %>% pluck(1))
 
 # download NCBI snp tree for this cluster
 SNP_tree_dl <- 

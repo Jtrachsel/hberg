@@ -18,4 +18,4 @@ read_tsv('close_relatives_pan/WRITE/modules_summary.tsv')
 # is this missing the genes present in these plastic regions?
 read_tsv('close_relatives_pan/WRITE/plastic_regions.tsv')
 
-read_tsv('close_relatives_pan/WRITE/')
+# read_tsv('close_relatives_pan/WRITE/')

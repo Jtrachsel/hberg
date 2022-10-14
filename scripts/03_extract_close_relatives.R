@@ -22,8 +22,7 @@ SNP_cluster_tree_dat <-
   dplyr::select(rep_genome, everything()) # need taxa column 1st for ggtree
 
 
-tr <- read.raxml('RAxML_bipartitionsBranchLabels.SNP_reps_pan')
-trR <- read.tree('ROOT_DIG1.rooted.tree')
+trR <- read.tree('output/ROOT_DIG1.rooted.tree')
 
 
 
@@ -57,10 +56,16 @@ ggtr +
   geom_highlight(node=MRCA - 1, extend=1 ,to.bottom = T)+
   expand_limits(x=.009)
   
+
+
+# One other SNP cluster associated with SX244 and SX245
+close_clusters <- clade.members(x = MRCA, phy =trR, tip.labels = T)
+close_clusters <- close_clusters[!grepl('SX', close_clusters)]
+
 ### THIS ONE
 p_clade <- 
-  ggtr_clade %>% 
-  ggtree::rotate(68)+
+  ggtr_clade + 
+  # ggtree::rotate(68)+  # THIS CANT BE HARDCODED.... HOW TO CALC!?!
   # geom_nodelab(aes(label=node), size=3) +
   geom_highlight(node=MRCA_clade, extend=.000005 )+
   geom_point2(aes(subset=grepl('SX', label)),size=3, color='purple')+
@@ -73,9 +78,6 @@ p_clade <-
 
 ggsave(p_clade, filename = 'output/SNP_cluster_tree.jpeg', width = 9, height = 7, bg='white')
 
-# One other SNP cluster associated with SX244 and SX245
-close_clusters <- clade.members(x = MRCA, phy =trR, tip.labels = T)
-close_clusters <- close_clusters[!grepl('SX', close_clusters)]
 
 
 # close clusters is more reasonable with 339 genomes
@@ -120,5 +122,5 @@ close_relatives_paths <-
 close_relatives_paths <- c(close_relatives_paths, SX_paths)
 
 build_ppanggolin_file_fastas(incomplete_genome_paths =close_relatives_paths ) %>% 
-  write_tsv('close_relatives_ppang.tsv', col_names = FALSE)
+  write_tsv('output/close_relatives_ppang.tsv', col_names = FALSE)
 
