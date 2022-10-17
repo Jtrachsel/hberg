@@ -52,33 +52,33 @@ mv output/2022*_psortb_gramneg.txt output/close_rel_psortb.txt
 find output/close_relatives_pan/MSA/msa_core_protein/ -size 0 -print -delete
 
 # need to remove non strict core msas...
-mkdir non_core_msas
+mkdir bad_msas
+
+# find max number of genomes
 MAX=$(for x in output/close_relatives_pan/MSA/msa_core_protein/*aln; do cat $x |grep '>' | wc -l; done |sort -n| tail -n 1)
 
-mkdir invariant_msas
 
 for x in output/close_relatives_pan/MSA/msa_core_protein/*aln
 do
+
   NUM=$(cat $x |grep '>' | wc -l)
   NUM_UNIQ=$(seqkit rmdup -s < $x | grep '>' |wc -l)
 
-  
-  if (( $NUM != $MAX )); then
-     mv $x non_core_msas
+  # if not all genomes are represented
+  # OR all sequences are identical
+  # remove the msa
+  if (( $NUM != $MAX )) || (( $NUM_UNIQ == 1 )); then
+     mv $x bad_msas/
   fi
   
-  if (( $NUM_UNIQ == 1 )); then
-     mv $x invariant_msas
-  fi
-
-
+  
 done
 
 
 
 # after removing proteins not found in all genomes, and invariant protiens, 
 # we are left with 772 proteins for phylogenetic inference (10-14-2022)
-iqtree -s output/close_relatives_pan/MSA/msa_core_protein/ -T AUTO --verbose -m MFP --merge -B 1000
+iqtree -s output/close_relatives_pan/MSA/msa_core_protein/ -T AUTO --verbose -m MFP -msub nuclear --merge -B 1000 
 
-rm -r invariant_msas/
-rm -r non_core_msas/
+rm -r bad_msas
+
