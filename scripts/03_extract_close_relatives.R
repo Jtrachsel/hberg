@@ -101,9 +101,9 @@ close_relatives_meta <-
   download_genomes(type = 'fna', PARALLEL = TRUE) %>% 
   write_tsv('output/close_relatives_meta.tsv')
 
-SX_paths <- list.files('assemblies', 'SX', full.names = T)
-# SX_dest <- paste0('close_relatives/', list.files('assemblies', 'SX'))
-# file.copy(SX_paths, SX_dest)
+
+
+
 
 
 gzfiles <- list.files('./assemblies', pattern = '*gz', full.names = TRUE)
@@ -112,12 +112,21 @@ gunzip_results <- furrr::future_map(.x = gzfiles, .f = ~R.utils::gunzip(.x))
 gzfiles <- list.files('./assemblies', pattern = '*gz')
 print(gzfiles)
 
+
+# this removes duplicated contigs from the assemblies
+# any contigs that are fully contained within another contig are removed
+# probably a bad way to do this...
+call_results <- system('bash -i ./scripts/03b_extract_close_relatives.sh',
+                       intern = T)
+
 # this should output the paths of the assemblies listed in the close_relatives metadata
 close_rel_pattern <- paste(close_relatives_meta$asm_acc, collapse = '|')
 close_relatives_paths <- 
   grep(close_rel_pattern, 
-       list.files('assemblies', full.names = T),
+       list.files('dedupe_assemblies', full.names = T),
        value = TRUE)
+
+SX_paths <- list.files('dedupe_assemblies', 'SX', full.names = T)
 
 close_relatives_paths <- c(close_relatives_paths, SX_paths)
 

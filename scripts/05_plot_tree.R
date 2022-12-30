@@ -8,6 +8,9 @@ meta <-
   read_tsv('output/close_relatives_meta.tsv') %>% 
   dplyr::select(asm_acc, everything())
 
+# meta <- meta %>% left_join(novelty_scores %>% dplyr::select(asm_acc, log_novelty, RANK))
+
+
 # ggtr <- ggtree(crtr, layout = 'circular') %<+% meta
 ggtr <- ggtree(crtr) %<+% meta
 
@@ -22,6 +25,16 @@ ggtr +
   geom_point2(aes(subset=sra_center == 'USDA-NVSL-DBL'), shape=21,fill='red')+
   # geom_nodepoint(aes(subset=bootstrap > 74, color=bootstrap)) + 
   expand_limits(x=.0004) + ggtitle('')
+
+# ggtr +
+#   # geom_tippoint(aes(fill=ag_match),size=2, shape =21)+
+#   geom_tiplab(aes(subset=grepl('SX', label)), align = T) + 
+#   scale_fill_brewer(palette = 'Dark2', direction = -1) + 
+#   geom_point2(aes(subset=!is.na(log_novelty) ),size=3, shape=21,fill='blue')+
+#   geom_point2(aes(subset=sra_center == 'USDA-NVSL-DBL'), shape=21,fill='red')+
+#   # geom_nodepoint(aes(subset=bootstrap > 74, color=bootstrap)) + 
+#   expand_limits(x=.0004) + ggtitle('')
+
 
 ggtr$data <- 
   ggtr$data %>%

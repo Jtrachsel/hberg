@@ -41,9 +41,12 @@ ppanggolin fasta -p ./output/close_relatives_pan/pangenome.h5 --output output/cl
 
 # RUN AMRFINDER ON REP_PROTS
 amrfinder -p output/close_relatives_pan/REP_PROTS/all_protein_families.faa  --organism Salmonella --plus --output output/close_relatives_pan_prots_amrfinder.tsv
+
+
 # RUN PSORT ON REP_PROTS
+
 psortb -n -r output/ -i output/close_relatives_pan/REP_PROTS/all_protein_families.faa -o terse -v
-mv output/2022*_psortb_gramneg.txt output/close_rel_psortb.txt
+mv output/*_psortb_gramneg.txt output/close_rel_psortb.txt
 
 
 
